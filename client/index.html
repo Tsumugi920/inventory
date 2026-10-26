@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory 库存管理</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <div>
+      <h1>📦 Inventory 库存管理</h1>
+      <p class="subtitle">物品管理 · 出入库 · 低于阈值提醒</p>
+    </div>
+    <div class="topbar-meta" id="refresh-time"></div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- 库存汇总卡片 -->
+  <section class="cards" id="summary-cards"></section>
+
+  <!-- 低于阈值提醒 -->
+  <section id="alert-box"></section>
+
+  <!-- 物品列表 -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>物品列表</h2>
+      <div class="toolbar">
+        <select id="category-filter" title="按分类筛选">
+          <option value="">全部分类</option>
+        </select>
+        <input type="search" id="keyword" placeholder="搜索物品名称…" title="按名称搜索">
+        <button class="btn btn-primary" id="btn-add" type="button">＋ 添加物品</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>物品名称</th><th>分类</th><th>当前库存</th><th>阈值</th><th>状态</th><th class="th-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody id="items-body"></tbody>
+      </table>
+    </div>
+    <p class="empty hidden" id="items-empty">没有符合条件的物品</p>
+  </section>
+
+  <!-- 出入库记录 -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>出入库记录 <span class="muted" id="records-count"></span></h2>
+      <p class="muted small">最近 50 条（新 → 旧）</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>时间</th><th>物品</th><th>类型</th><th>数量</th><th>备注</th></tr></thead>
+        <tbody id="records-body"></tbody>
+      </table>
+    </div>
+    <p class="empty hidden" id="records-empty">暂无出入库记录</p>
+  </section>
+
+  <footer class="footer">数据保存在 server/data.json · 后端端口 3005 · REST API 见 README</footer>
+</main>
+
+<!-- 出入库弹窗 -->
+<div class="modal-overlay hidden" id="stock-modal">
+  <form class="modal" id="stock-form">
+    <input type="hidden" id="stock-id">
+    <h3 id="stock-title">入库</h3>
+    <p class="muted small" id="stock-info"></p>
+    <div class="seg" role="radiogroup" aria-label="出入库类型">
+      <label class="seg-item"><input type="radio" name="stock-type" value="in" checked><span>📥 入库</span></label>
+      <label class="seg-item"><input type="radio" name="stock-type" value="out"><span>📤 出库</span></label>
+    </div>
+    <label class="field">数量
+      <input type="number" id="stock-qty" min="1" step="1" required>
+    </label>
+    <label class="field">备注
+      <input type="text" id="stock-note" maxlength="100" placeholder="选填，如：采购到货 / 部门领用">
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-close>取消</button>
+      <button type="submit" class="btn btn-primary" id="stock-submit">确认</button>
+    </div>
+  </form>
+</div>
+
+<!-- 添加 / 编辑物品弹窗 -->
+<div class="modal-overlay hidden" id="item-modal">
+  <form class="modal" id="item-form">
+    <input type="hidden" id="item-id">
+    <h3 id="item-title">添加物品</h3>
+    <label class="field">名称 *
+      <input type="text" id="f-name" maxlength="50" required placeholder="如：无线鼠标">
+    </label>
+    <label class="field">分类 *
+      <input type="text" id="f-category" maxlength="20" list="category-list" required placeholder="如：办公用品">
+      <datalist id="category-list"></datalist>
+    </label>
+    <div class="field-row">
+      <label class="field" id="f-quantity-group">初始库存
+        <input type="number" id="f-quantity" min="0" step="1" value="0">
+      </label>
+      <label class="field">低于阈值提醒
+        <input type="number" id="f-threshold" min="0" step="1" value="10" required>
+      </label>
+    </div>
+    <label class="field">单位
+      <input type="text" id="f-unit" maxlength="10" placeholder="个 / 包 / 台 …">
+    </label>
+    <label class="field">备注
+      <input type="text" id="f-remark" maxlength="100" placeholder="选填">
+    </label>
+    <p class="muted small hidden" id="edit-tip">编辑模式不修改库存数量，库存变化请使用「入库 / 出库」。</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-close>取消</button>
+      <button type="submit" class="btn btn-primary" id="item-submit">保存</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
